@@ -4,6 +4,7 @@ from streamlit_chat import message
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain import HuggingFaceHub
 from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.embeddings import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 import os
 from langchain.document_loaders import DirectoryLoader
@@ -11,7 +12,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 import os
 
-HUGGING_FACE_API_KEY = "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"
+#HUGGING_FACE_API_KEY = "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"
 def load_chain(query):
     """Logic for loading the chain you want to use should go here."""
 
@@ -27,7 +28,7 @@ def load_chain(query):
     #### Loading LLM ###
     model = HuggingFaceHub(repo_id="facebook/mbart-large-50",
                        model_kwargs={"temperature": 0, "max_length":200},
-                       huggingfacehub_api_token=HUGGING_FACE_API_KEY)
+                       huggingfacehub_api_token=os.environ.get('HUGGING_FACE_API_KEY'))
     
     sources_chain = load_qa_with_sources_chain(model, chain_type="refine")
     documents = db.similarity_search(query)
