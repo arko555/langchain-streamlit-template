@@ -1,7 +1,6 @@
 """Python file to serve as the frontend"""
 import streamlit as st
 from streamlit_chat import message
-
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain import HuggingFaceHub
 from langchain.embeddings import HuggingFaceEmbeddings
@@ -12,7 +11,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 import os
 
-
+HUGGING_FACE_API_KEY = "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"
 def load_chain(query):
     """Logic for loading the chain you want to use should go here."""
 
@@ -35,8 +34,6 @@ def load_chain(query):
     result = sources_chain.run(input_documents=documents, question=query)
 
     return result
-
-chain = load_chain()
 
 # From here down is all the StreamLit UI.
 st.set_page_config(page_title="LangChain Demo", page_icon=":robot:")
