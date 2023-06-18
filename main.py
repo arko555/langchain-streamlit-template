@@ -4,6 +4,10 @@ from streamlit_chat import message
 
 from langchain.chains import ConversationChain
 from langchain.llms import OpenAI
+import pinecone
+import os
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import Pinecone
 
 
 def load_chain():
