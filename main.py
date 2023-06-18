@@ -2,19 +2,39 @@
 import streamlit as st
 from streamlit_chat import message
 
-from langchain.chains import ConversationChain
-from langchain.llms import OpenAI
-import pinecone
+from langchain.chains.qa_with_sources import load_qa_with_sources_chain
+from langchain import HuggingFaceHub
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.vectorstores import FAISS
 import os
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.vectorstores import Pinecone
+from langchain.document_loaders import DirectoryLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+import os
 
 
-def load_chain():
+def load_chain(query):
     """Logic for loading the chain you want to use should go here."""
-    llm = OpenAI(temperature=0)
-    chain = ConversationChain(llm=llm)
-    return chain
+
+    ## Creating embedddings and storing in FAISS vector store ###
+    my_loader = DirectoryLoader('./research_papers', glob='**/*.pdf')
+    documents = my_loader.load()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size = 700, chunk_overlap = 0)
+    docs = text_splitter.split_documents(documents)
+
+    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
+    db = FAISS.from_documents(docs, embeddings)
+    
+    #### Loading LLM ###
+    model = HuggingFaceHub(repo_id="facebook/mbart-large-50",
+                       model_kwargs={"temperature": 0, "max_length":200},
+                       huggingfacehub_api_token=HUGGING_FACE_API_KEY)
+    
+    sources_chain = load_qa_with_sources_chain(model, chain_type="refine")
+    documents = db.similarity_search(query)
+    result = sources_chain.run(input_documents=documents, question=query)
+
+    return result
 
 chain = load_chain()
 
@@ -37,7 +57,7 @@ def get_text():
 user_input = get_text()
 
 if user_input:
-    output = chain.run(input=user_input)
+    output = load_chain(query=user_input)
 
     st.session_state.past.append(user_input)
     st.session_state.generated.append(output)
