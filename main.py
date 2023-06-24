@@ -12,7 +12,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 import os
 
-#HUGGING_FACE_API_KEY = "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"
+#HUGGING_FACE_API_KEY = "enter_api_key_here"
 def load_chain(query):
     """Logic for loading the chain you want to use should go here."""
 
