@@ -1,5 +1,6 @@
+altair==4.0.0
 langchain
 openai
-streamlit
-streamlit-chat
+streamlit==1.12.0
+streamlit-chat==0.0.2.2
 pinecone-client

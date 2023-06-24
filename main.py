@@ -5,33 +5,34 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain import HuggingFaceHub
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.embeddings import OpenAIEmbeddings
-from langchain.vectorstores import FAISS
-import os
+from langchain.vectorstores import Pinecone
 from langchain.document_loaders import DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+import pinecone
 
 import os
+from dotenv import load_dotenv
 
-#HUGGING_FACE_API_KEY = "enter_api_key_here"
+load_dotenv('config.env')
+
 def load_chain(query):
     """Logic for loading the chain you want to use should go here."""
 
-    ## Creating embedddings and storing in FAISS vector store ###
-    my_loader = DirectoryLoader('./research_papers', glob='**/*.pdf')
-    documents = my_loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size = 700, chunk_overlap = 0)
-    docs = text_splitter.split_documents(documents)
-
+    pinecone.init(
+        api_key=os.environ.get("pinecone_api_key"),  # get yours from pinecone.io. there is a free tier.
+        environment=os.environ.get("pinecone_env")
+)
     embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
-    db = FAISS.from_documents(docs, embeddings)
+    vectorstore = Pinecone.from_existing_index('pdf-bot', embedding=embeddings)
     
+    repo_ids = ["facebook/mbart-large-50","google/flan-t5-base"]
     #### Loading LLM ###
-    model = HuggingFaceHub(repo_id="facebook/mbart-large-50",
+    model = HuggingFaceHub(repo_id=repo_ids[1],
                        model_kwargs={"temperature": 0, "max_length":200},
                        huggingfacehub_api_token=os.environ.get('HUGGING_FACE_API_KEY'))
     
     sources_chain = load_qa_with_sources_chain(model, chain_type="refine")
-    documents = db.similarity_search(query)
+    documents = vectorstore.similarity_search(query)
     result = sources_chain.run(input_documents=documents, question=query)
 
     return result
