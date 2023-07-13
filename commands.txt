@@ -1,5 +1,0 @@
-cd C:\Users\hp\Anaconda3\Scripts
-activate base
-conda info --envs
-conda remove -n ENV_NAME --all
-conda list
