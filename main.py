@@ -25,13 +25,13 @@ def load_chain(query):
     embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
     vectorstore = Pinecone.from_existing_index('pdf-bot', embedding=embeddings)
     
-    repo_ids = ["facebook/mbart-large-50","google/flan-t5-base"]
+    repo_ids = ["facebook/mbart-large-50","google/flan-t5-base","google/flan-t5-large"]
     #### Loading LLM ###
     model = HuggingFaceHub(repo_id=repo_ids[1],
                        model_kwargs={"temperature": 0, "max_length":200},
                        huggingfacehub_api_token=os.environ.get('HUGGING_FACE_API_KEY'))
     
-    sources_chain = load_qa_with_sources_chain(model, chain_type="refine")
+    sources_chain = load_qa_with_sources_chain(model, chain_type="stuff")
     documents = vectorstore.similarity_search(query)
     result = sources_chain.run(input_documents=documents, question=query)
 
